@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bjpowernode.workbench.dao.ActivityDao">
+
+<insert id="save">
+  insert into tbl_activity(
+    id,
+    owner,
+    name,
+    startDate,
+    endDate,
+    cost,
+    description,
+    createTime,
+    createBy
+  ) value (
+    #{id},
+    #{owner},
+    #{name},
+    #{startDate},
+    #{endDate},
+    #{cost},
+    #{description},
+    #{createTime},
+    #{createBy}
+  )
+</insert>
+<select id="getPageList" parameterType="map" resultType="Activity">
+  select
+    a.id,
+    a.name,
+    u.name as owner,
+    a.startDate,
+    a.endDate
+  from
+    tbl_activity as a
+  join
+    (select id,name from tbl_user where lockState = 1 and expireTime &gt; #{time}) as u
+  on
+    a.owner = u.id
+    <where>
+      <if test="name != null and name != ''">
+        a.name like '%' #{name} '%'
+      </if>
+      <if test="owner != null and owner != ''">
+        and u.owner like '%' #{owner} '%'
+      </if>
+      <if test="startDate != null and startDate != ''">
+        and a.startDate <![CDATA[ >= ]]> #{startDate}
+      </if>
+      <if test="endDate != null and endDate != ''">
+        and a.endDate <![CDATA[ <= ]]> #{endDate}
+      </if>
+    </where>
+    order by
+      a.createTime desc
+    limit
+      #{pageNo},#{pageSize}
+</select>
+  <select id="getTotal" parameterType="map" resultType="int">
+    select
+    count(a.id)
+    from
+    tbl_activity as a
+    join
+    (select id,name from tbl_user where lockState = 1 and expireTime &gt; #{time}) as u
+    on
+    a.owner = u.id
+    <where>
+      <if test="name != null and name != ''">
+        a.name like '%' #{name} '%'
+      </if>
+      <if test="owner != null and owner != ''">
+        and u.owner like '%' #{owner} '%'
+      </if>
+      <if test="startDate != null and startDate != ''">
+        and a.startDate <![CDATA[ >= ]]> #{startDate}
+      </if>
+      <if test="endDate != null and endDate != ''">
+        and a.endDate <![CDATA[ <= ]]> #{endDate}
+      </if>
+    </where>
+  </select>
+  <delete id="delete">
+    delete from
+     tbl_activity
+    where
+      id in
+    <foreach collection="array" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+
+  </delete>
+  <select id="getFindByID" parameterType="String" resultType="Activity">
+    select * from tbl_activity where id = #{id}
+  </select>
+  <update id="update" parameterType="Activity">
+    update tbl_activity set
+    owner = #{owner},
+    name = #{name},
+    startDate = #{startDate},
+    endDate = #{endDate},
+    cost = #{cost},
+    description = #{description},
+    editTime = #{editTime},
+    editBy = #{editBy}
+    where id = #{id}
+  </update>
+  <select id="detail" parameterType="String" resultType="Activity">
+    SELECT
+        tbl_activity.id,
+        tbl_activity.name,
+        t.owner,
+        tbl_activity.cost,
+        tbl_activity.description,
+        t.createBy,
+        t.editBy,
+        tbl_activity.createTime,
+        tbl_activity.editTime,
+        tbl_activity.startDate,
+        tbl_activity.endDate
+    FROM
+        tbl_activity
+    JOIN (
+        SELECT
+            b.id,
+            b.owner,
+            b.createBy,
+            tbl_user.name AS editBy
+        FROM
+            (
+                SELECT
+                    a.id,
+                    a.editBy,
+                    a.owner,
+                    tbl_user.name AS createBy
+                FROM
+                    (
+                        SELECT
+                            tbl_activity.id,
+                            tbl_activity.editBy,
+                            tbl_activity.createBy,
+                            tbl_user.name AS owner
+                        FROM
+                            tbl_activity
+                        JOIN tbl_user ON tbl_activity. owner = tbl_user.id
+                        WHERE
+                            tbl_activity.id = #{id}
+                    ) AS a
+                JOIN tbl_user ON a.createBy = tbl_user.id
+            ) b
+        JOIN tbl_user ON b.editBy = tbl_user.id
+    ) t ON tbl_activity.id = t.id
+  </select>
+    <select id="getActivityListByNameAndNotByClueId" parameterType="map" resultType="Activity">
+        select
+        a.id,
+        a.name,
+        a.startDate,
+        a.endDate,
+        u.name as owner
+        from
+        tbl_activity a
+        join
+        tbl_user u
+        on
+        a.owner = u.id
+        where a.name like '%' #{aname} '%' and a.id not in (
+        select activityId from tbl_clue_activity_relation where clueId = #{clueId}
+        )
+    </select>
+    <select id="getActivityListByName" parameterType="String" resultType="Activity">
+        select
+        a.id,
+        a.name,
+        a.startDate,
+        a.endDate,
+        u.name as owner
+        from
+        tbl_activity a
+        join
+        tbl_user u
+        on
+        a.owner = u.id
+        where a.name like '%' #{aname} '%'
+    </select>
+    <select id="getActivityListByClueId" parameterType="String" resultType="Activity">
+        select
+        c.id as id,
+        a.name,
+        a.startDate,
+        a.endDate,
+        u.name as owner
+        from
+        tbl_activity a
+        join
+        tbl_user u
+        on
+        a.owner = u.id
+        join
+        tbl_clue_activity_relation c
+        on
+        a.id = c.activityId
+        where
+        c.clueId = #{clueId}
+    </select>
+</mapper>

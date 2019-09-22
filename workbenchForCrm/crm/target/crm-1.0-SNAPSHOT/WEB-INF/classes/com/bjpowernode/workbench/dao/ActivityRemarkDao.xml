@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bjpowernode.workbench.dao.ActivityRemarkDao">
+<delete id="deleteByactivityId">
+    delete from tbl_activity_remark where activityId in
+    <foreach collection="array" item="activityId" open="(" close=")" separator=",">
+        #{activityId}
+    </foreach>
+</delete>
+<select id="getCountByIds" resultType="int">
+    select count(id) from tbl_activity_remark where activityId in
+    <foreach collection="array" item="activityId" open="(" close=")" separator=",">
+        #{activityId}
+    </foreach>
+</select>
+<select id="getRemarkListByAid" parameterType="String" resultType="ActivityRemark">
+   SELECT
+t.editBy,
+t.createBy,
+t.id,
+tbl_activity_remark.createTime,
+tbl_activity_remark.editFlag,
+tbl_activity_remark.editTime,
+tbl_activity_remark.noteContent
+FROM
+(SELECT
+tbl_user.name AS editBy,
+a.createBy,
+a.id
+FROM
+( select
+ tbl_user.name as createBy,
+tbl_activity_remark.editBy,
+tbl_activity_remark.id
+from tbl_activity_remark
+     join
+			tbl_user
+			ON
+			tbl_activity_remark.createBy = tbl_user.id
+WHERE
+	tbl_activity_remark.activityId = #{id}) a
+LEFT JOIN
+tbl_user
+ON
+a.editBy = tbl_user.id) t
+JOIN
+tbl_activity_remark
+ON
+t.id = tbl_activity_remark.id
+</select>
+<insert id="saveRemark" parameterType="ActivityRemark">
+    insert into tbl_activity_remark(
+        id,
+        noteContent,
+        createTime,
+        createBy,
+        editFlag,
+        activityId
+    )value (
+        #{id},
+        #{noteContent},
+        #{createTime},
+        #{createBy},
+        #{editFlag},
+        #{activityId}
+    )
+</insert>
+</mapper>

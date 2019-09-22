@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <properties resource="db.properties"/>
+
+    <typeAliases>
+
+        <package name="com.bjpowernode.settings.domain"/>
+        <package name="com.bjpowernode.workbench.domian"/>
+
+    </typeAliases>
+
+    <!--
+
+        配置连接数据库的环境
+
+    -->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--
+
+        mapper映射文件的注册中心
+        mapper映射文件一定要在主配置文件中进行注册后，才能够使用
+
+    -->
+    <mappers>
+
+        <!-- 配置方式1：直接配置mapper映射文件 -->
+        <!--<mapper resource="com/bjpowernode/dao/StudentDao.xml"/>-->
+
+        <!-- 配置方式2：配置mapper映射文件对应的接口 -->
+        <!--<mapper class="com.bjpowernode.dao.StudentDao"/>-->
+
+        <!--
+
+            实际项目开发用这种形式：
+            配置方式3：在指定的包结构下，批量配置mapper
+
+        -->
+        <package name="com.bjpowernode.settings.dao"/>
+        <package name="com.bjpowernode.workbench.dao"/>
+
+    </mappers>
+
+</configuration>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
